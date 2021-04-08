@@ -1,0 +1,9 @@
+# Ignore virtual environment
+venv
+# Ignore lightning logs
+lightning_logs
+# Ignore cache files
+*.pyc
+# Ignore dataset files
+data/datasets/FB15k-237
+data/datasets/wn18rr
