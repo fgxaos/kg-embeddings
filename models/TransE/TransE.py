@@ -8,8 +8,6 @@ import torch.nn.functional as F
 
 import pytorch_lightning as pl
 
-# Custom libraries
-
 ### CLASS DEFINITION ###
 class TransE(pl.LightningModule):
     """TransE model.

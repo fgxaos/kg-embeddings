@@ -6,12 +6,12 @@ from torch.utils.data import Dataset
 
 ### CLASS DEFINITION ###
 class TrainDataset(Dataset):
-    """Training dataset for the FB15k-237 dataset."""
+    """Training dataset for the FB15k-237 or wn18rr dataset."""
 
     def __init__(
         self, triples: list, n_entity: int, n_relation: int, negative_sample_size: int
     ):
-        """Initiates the FB15k-237 dataset for training.
+        """Initiates the FB15k-237 or wn18rr dataset for training.
 
         Each even element corresponds to a (`relation`, `tail`) element,
         each odd element corresponds to a (`head`, `relation`) element.
@@ -166,12 +166,12 @@ class TrainDataset(Dataset):
 
 
 class TestDataset(Dataset):
-    """Validation and test datasets for the FB15k-237 dataset."""
+    """Validation and test datasets for the FB15k-237 or wn18rr dataset."""
 
     def __init__(
         self, triples: list, all_true_triples: list, n_entity: int, n_relation: int
     ):
-        """Initiates the FB15k-237 dataset for training.
+        """Initiates the FB15k-237 or wn18rr dataset for validation and testing.
 
         Each even element corresponds to a (`relation`, `tail`) element,
         each odd element corresponds to a (`head`, `relation`) element.
