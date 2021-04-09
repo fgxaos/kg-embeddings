@@ -6,4 +6,4 @@ This repository aims to gather different knowledge graph embeddings, in order to
 
 ## References
 This repository uses parts of the code of the following repositories:
-- https://github.com/DeepGraphLearning/KnowledgeGraphEmbedding: datasets, TransE model
+- https://github.com/DeepGraphLearning/KnowledgeGraphEmbedding: datasets, and TransE, DistMult, ComplEx, RotatE and pRotatE models
