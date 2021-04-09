@@ -225,17 +225,20 @@ class ComplEx(pl.LightningModule):
             else:
                 raise ValueError(f"Mode {mode} not supported")
 
+            val_score = 0
             for i in range(len(batch)):
                 ranking = (argsort[i, :] == positive_arg[i]).nonzero()
                 assert ranking.size(0) == 1
 
                 # `ranking + 1` is the true ranking, used in evaluation metrics
                 ranking = 1 + ranking.item()
+                val_score += ranking
                 self.log("MRR", 1.0 / ranking)
                 self.log("MR", float(ranking))
                 self.log("HITS@1", 1.0 if ranking <= 1 else 0.0)
                 self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
                 self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
+            self.log("val_score", val_score)
 
     def test_step(self, batch, batch_idx):
         with torch.no_grad():
