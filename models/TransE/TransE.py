@@ -99,6 +99,8 @@ class TransE(pl.LightningModule):
             b=self.embedding_range.item(),
         )
 
+        self.save_hyperparameters()
+
     def forward(self, sample, mode="single"):
         if mode == "single":
             batch_size, negative_sample_size = sample.size(0), 1
@@ -159,103 +161,116 @@ class TransE(pl.LightningModule):
         return score
 
     def training_step(self, batch, batch_idx):
-        positive_sample, negative_sample, subsampling_weight, mode = batch
-        negative_score = self((positive_sample, negative_sample), mode=mode)
+        batch_loss = 0
+        for sub_batch in batch:
+            positive_sample, negative_sample, subsampling_weight, mode = sub_batch
+            negative_score = self((positive_sample, negative_sample), mode=mode)
 
-        if self.negative_adversarial_sampling:
-            # Don't apply back-propagation on the sampling weight
-            negative_score = (
-                F.softmax(negative_score * self.adversarial_temperature, dim=1).detach()
-                * F.logsigmoid(-negative_score)
-            ).sum(dim=1)
-        else:
-            negative_score = F.logsigmoid(-negative_score).mean(dim=1)
+            if self.negative_adversarial_sampling:
+                # Don't apply back-propagation on the sampling weight
+                negative_score = (
+                    F.softmax(
+                        negative_score * self.adversarial_temperature, dim=1
+                    ).detach()
+                    * F.logsigmoid(-negative_score)
+                ).sum(dim=1)
+            else:
+                negative_score = F.logsigmoid(-negative_score).mean(dim=1)
 
-        positive_score = self(positive_sample)
-        positive_score = F.logsigmoid(positive_score).squeeze(dim=1)
+            positive_score = self(positive_sample)
+            positive_score = F.logsigmoid(positive_score).squeeze(dim=1)
 
-        if self.uni_weight:
-            positive_sample_loss = -positive_score.mean()
-            negative_sample_loss = -negative_score.mean()
-        else:
-            positive_sample_loss = (
-                -(subsampling_weight * positive_score).sum() / subsampling_weight.sum()
-            )
-            negative_sample_loss = (
-                -(subsampling_weight * negative_score).sum() / subsampling_weight.sum()
-            )
+            if self.uni_weight:
+                positive_sample_loss = -positive_score.mean()
+                negative_sample_loss = -negative_score.mean()
+            else:
+                positive_sample_loss = (
+                    -(subsampling_weight * positive_score).sum()
+                    / subsampling_weight.sum()
+                )
+                negative_sample_loss = (
+                    -(subsampling_weight * negative_score).sum()
+                    / subsampling_weight.sum()
+                )
 
-        loss = (positive_sample_loss + negative_sample_loss) / 2
+            loss = (positive_sample_loss + negative_sample_loss) / 2
 
-        if self.regularization != 0.0:
-            regularization = args.regularization * (
-                self.entity_embedding.norm(p=3) ** 3
-                + self.relation_embedding.norm(p=3).norm(p=3) ** 3
-            )
-            loss = loss + regularization
+            if self.regularization != 0.0:
+                regularization = args.regularization * (
+                    self.entity_embedding.norm(p=3) ** 3
+                    + self.relation_embedding.norm(p=3).norm(p=3) ** 3
+                )
+                loss += regularization
 
-        return loss
+            batch_loss += loss
+
+        return batch_loss / 2
 
     def validation_step(self, batch, batch_idx):
         with torch.no_grad():
-            positive_sample, negative_sample, filter_bias, mode = batch
-            score = self((positive_sample, negative_sample), mode)
-            score += filter_bias
-
-            # Explicitly sort all the entities to ensure that there
-            # is no text exposure bias
-            argsort = torch.argsort(score, dim=1, descending=True)
-
-            if mode == "head-batch":
-                positive_arg = positive_sample[:, 0]
-            elif mode == "tail-batch":
-                positive_arg = positive_sample[:, 2]
-            else:
-                raise ValueError(f"Mode {mode} not supported")
-
             val_score = 0
-            for i in range(len(batch)):
-                ranking = (argsort[i, :] == positive_arg[i]).nonzero()
-                assert ranking.size(0) == 1
+            for sub_batch in batch:
+                positive_sample, negative_sample, filter_bias, mode = sub_batch
+                score = self((positive_sample, negative_sample), mode)
+                score += filter_bias
 
-                # `ranking + 1` is the true ranking, used in evaluation metrics
-                ranking = 1 + ranking.item()
-                val_score += ranking
-                self.log("MRR", 1.0 / ranking)
-                self.log("MR", float(ranking))
-                self.log("HITS@1", 1.0 if ranking <= 1 else 0.0)
-                self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
-                self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
+                # Explicitly sort all the entities to ensure that there
+                # is no text exposure bias
+                argsort = torch.argsort(score, dim=1, descending=True)
+
+                if mode == "head-batch":
+                    positive_arg = positive_sample[:, 0]
+                elif mode == "tail-batch":
+                    positive_arg = positive_sample[:, 2]
+                else:
+                    raise ValueError(f"Mode {mode} not supported")
+
+                for i in range(len(batch)):
+                    ranking = torch.nonzero(argsort[i, :] == positive_arg[i])
+                    assert ranking.size(0) == 1
+
+                    # `ranking + 1` is the true ranking, used in evaluation metrics
+                    ranking = 1 + ranking.item()
+                    val_score += ranking
+                    self.log("MRR", 1.0 / ranking)
+                    self.log("MR", float(ranking))
+                    self.log("HITS@1", 1.0 if ranking <= 1 else 0.0)
+                    self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
+                    self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
             self.log("val_score", val_score)
 
     def test_step(self, batch, batch_idx):
         with torch.no_grad():
-            positive_sample, negative_sample, filter_bias, mode = batch
-            score = self((positive_sample, negative_sample), mode)
-            score += filter_bias
+            test_score = 0
+            for sub_batch in batch:
+                positive_sample, negative_sample, filter_bias, mode = sub_batch
+                score = self((positive_sample, negative_sample), mode)
+                score += filter_bias
 
-            # Explicitly sort all the entities to ensure that there
-            # is no text exposure bias
-            argsort = torch.argsort(score, dim=1, descending=True)
+                # Explicitly sort all the entities to ensure that there
+                # is no text exposure bias
+                argsort = torch.argsort(score, dim=1, descending=True)
 
-            if mode == "head-batch":
-                positive_arg = positive_sample[:, 0]
-            elif mode == "tail-batch":
-                positive_arg = positive_sample[:, 2]
-            else:
-                raise ValueError(f"Mode {mode} not supported")
+                if mode == "head-batch":
+                    positive_arg = positive_sample[:, 0]
+                elif mode == "tail-batch":
+                    positive_arg = positive_sample[:, 2]
+                else:
+                    raise ValueError(f"Mode {mode} not supported")
 
-            for i in range(len(batch)):
-                ranking = (argsort[i, :] == positive_arg[i]).nonzero()
-                assert ranking.size(0) == 1
+                for i in range(len(batch)):
+                    ranking = torch.nonzero(argsort[i, :] == positive_arg[i])
+                    assert ranking.size(0) == 1
 
-                # `ranking + 1` is the true ranking, used in evaluation metrics
-                ranking = 1 + ranking.item()
-                self.log("MRR", 1.0 / ranking)
-                self.log("MR", float(ranking))
-                self.log("HITS@1", 1.0 if ranking <= 1 else 0.0)
-                self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
-                self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
+                    # `ranking + 1` is the true ranking, used in evaluation metrics
+                    ranking = 1 + ranking.item()
+                    test_score += ranking
+                    self.log("MRR", 1.0 / ranking)
+                    self.log("MR", float(ranking))
+                    self.log("HITS@1", 1.0 if ranking <= 1 else 0.0)
+                    self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
+                    self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
+            self.log("test_score", test_score)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr or self.learning_rate)

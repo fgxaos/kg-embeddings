@@ -9,7 +9,12 @@ class TrainDataset(Dataset):
     """Training dataset for the FB15k-237 or wn18rr dataset."""
 
     def __init__(
-        self, triples: list, n_entity: int, n_relation: int, negative_sample_size: int
+        self,
+        triples: list,
+        n_entity: int,
+        n_relation: int,
+        negative_sample_size: int,
+        mode: str,
     ):
         """Initiates the FB15k-237 or wn18rr dataset for training.
 
@@ -25,12 +30,15 @@ class TrainDataset(Dataset):
                 total number of relations
             negative_sample_size: int
                 size of negative samples
+            mode: str
+                mode
         """
         self.triples = triples
         self.triple_set = set(triples)
         self.n_entity = n_entity
         self.n_relation = n_relation
         self.negative_sample_size = negative_sample_size
+        self.mode = mode
         self.count = self.count_frequency(triples)
         self.true_head, self.true_tail = self.get_true_head_and_tail(self.triples)
 
@@ -38,11 +46,7 @@ class TrainDataset(Dataset):
         return len(self.triples)
 
     def __getitem__(self, idx):
-        positive_sample = self.triples[idx // 2]
-        if idx % 2 == 0:
-            mode = "head-batch"
-        else:
-            mode = "tail-batch"
+        positive_sample = self.triples[idx]
 
         head, relation, tail = positive_sample
 
@@ -58,15 +62,15 @@ class TrainDataset(Dataset):
             negative_sample = np.random.randint(
                 self.n_entity, size=self.negative_sample_size * 2
             )
-            if mode == "head-batch":
-                mask = np.in1d(
+            if self.mode == "head-batch":
+                mask = np.isin(
                     negative_sample,
                     self.true_head[(relation, tail)],
                     assume_unique=True,
                     invert=True,
                 )
-            elif mode == "tail-batch":
-                mask = np.in1d(
+            elif self.mode == "tail-batch":
+                mask = np.isin(
                     negative_sample,
                     self.true_tail[(head, relation)],
                     assume_unique=True,
@@ -87,7 +91,7 @@ class TrainDataset(Dataset):
 
         positive_sample = torch.LongTensor(positive_sample)
 
-        return positive_sample, negative_sample, subsampling_weight, mode
+        return positive_sample, negative_sample, subsampling_weight, self.mode
 
     @staticmethod
     def collate_fn(data):
@@ -169,7 +173,12 @@ class TestDataset(Dataset):
     """Validation and test datasets for the FB15k-237 or wn18rr dataset."""
 
     def __init__(
-        self, triples: list, all_true_triples: list, n_entity: int, n_relation: int
+        self,
+        triples: list,
+        all_true_triples: list,
+        n_entity: int,
+        n_relation: int,
+        mode: str,
     ):
         """Initiates the FB15k-237 or wn18rr dataset for validation and testing.
 
@@ -185,23 +194,22 @@ class TestDataset(Dataset):
                 total number of entities
             n_relation: int
                 total number of relations
+            mode: str
+                mode
         """
         self.triple_set = set(all_true_triples)
         self.triples = triples
         self.n_entity = n_entity
         self.n_relation = n_relation
+        self.mode = mode
 
     def __len__(self):
         return len(self.triples)
 
     def __getitem__(self, idx):
-        head, relation, tail = self.triples[idx // 2]
-        if idx % 2 == 0:
-            mode = "head-batch"
-        else:
-            mode = "tail-batch"
+        head, relation, tail = self.triples[idx]
 
-        if mode == "head-batch":
+        if self.mode == "head-batch":
             tmp = [
                 (0, rand_head)
                 if (rand_head, relation, tail) not in self.triple_set
@@ -209,7 +217,7 @@ class TestDataset(Dataset):
                 for rand_head in range(self.n_entity)
             ]
             tmp[head] = (0, head)
-        elif mode == "tail-batch":
+        elif self.mode == "tail-batch":
             tmp = [
                 (0, rand_tail)
                 if (head, relation, rand_tail) not in self.triple_set
@@ -226,7 +234,7 @@ class TestDataset(Dataset):
 
         positive_sample = torch.LongTensor((head, relation, tail))
 
-        return positive_sample, negative_sample, filter_bias, mode
+        return positive_sample, negative_sample, filter_bias, self.mode
 
     @staticmethod
     def collate_fn(data):

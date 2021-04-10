@@ -5,6 +5,7 @@ import os
 from torch.utils.data import DataLoader
 
 from pytorch_lightning import LightningDataModule
+from pytorch_lightning.trainer.supporters import CombinedLoader
 
 # Custom libraries
 from data.datasets.datasets import TrainDataset, TestDataset
@@ -63,12 +64,13 @@ class KGDataModule(LightningDataModule):
         )
 
     def train_dataloader(self):
-        return DataLoader(
+        train_dataloader_head = DataLoader(
             TrainDataset(
                 self.train_triples,
                 len(self.entity2id),
                 len(self.relation2id),
                 self.negative_sample_size,
+                "head-batch",
             ),
             batch_size=self.batch_size,
             shuffle=True,
@@ -78,13 +80,32 @@ class KGDataModule(LightningDataModule):
             pin_memory=True,
         )
 
+        train_dataloader_tail = DataLoader(
+            TrainDataset(
+                self.train_triples,
+                len(self.entity2id),
+                len(self.relation2id),
+                self.negative_sample_size,
+                "tail-batch",
+            ),
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=self.num_workers,
+            collate_fn=TrainDataset.collate_fn,
+            drop_last=True,
+            pin_memory=True,
+        )
+
+        return [train_dataloader_head, train_dataloader_tail]
+
     def val_dataloader(self):
-        return DataLoader(
+        val_dataloader_head = DataLoader(
             TestDataset(
                 self.val_triples,
                 self.train_triples + self.val_triples + self.test_triples,
                 len(self.entity2id),
                 len(self.relation2id),
+                "head-batch",
             ),
             batch_size=self.batch_size,
             shuffle=False,
@@ -94,13 +115,13 @@ class KGDataModule(LightningDataModule):
             pin_memory=True,
         )
 
-    def test_dataloader(self):
-        return DataLoader(
+        val_dataloader_tail = DataLoader(
             TestDataset(
-                self.test_triples,
+                self.val_triples,
                 self.train_triples + self.val_triples + self.test_triples,
                 len(self.entity2id),
                 len(self.relation2id),
+                "tail-batch",
             ),
             batch_size=self.batch_size,
             shuffle=False,
@@ -109,3 +130,40 @@ class KGDataModule(LightningDataModule):
             drop_last=True,
             pin_memory=True,
         )
+
+        return CombinedLoader([val_dataloader_head, val_dataloader_tail])
+
+    def test_dataloader(self):
+        test_dataloader_head = DataLoader(
+            TestDataset(
+                self.test_triples,
+                self.train_triples + self.val_triples + self.test_triples,
+                len(self.entity2id),
+                len(self.relation2id),
+                "head-batch",
+            ),
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            collate_fn=TestDataset.collate_fn,
+            drop_last=True,
+            pin_memory=True,
+        )
+
+        test_dataloader_tail = DataLoader(
+            TestDataset(
+                self.test_triples,
+                self.train_triples + self.val_triples + self.test_triples,
+                len(self.entity2id),
+                len(self.relation2id),
+                "tail-batch",
+            ),
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            collate_fn=TestDataset.collate_fn,
+            drop_last=True,
+            pin_memory=True,
+        )
+
+        return CombinedLoader([test_dataloader_head, test_dataloader_tail])
