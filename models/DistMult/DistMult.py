@@ -57,7 +57,7 @@ class DistMult(pl.LightningModule):
             regularization: float
 
         """
-        super(TransE, self).__init__()
+        super(DistMult, self).__init__()
         self.n_entity = n_entity
         self.n_relation = n_relation
         self.hidden_dim = hidden_dim
@@ -96,6 +96,8 @@ class DistMult(pl.LightningModule):
             a=-self.embedding_range.item(),
             b=self.embedding_range.item(),
         )
+
+        self.save_hyperparameters()
 
     def forward(self, sample, mode="single"):
         if mode == "single":
