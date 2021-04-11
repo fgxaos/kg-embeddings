@@ -163,7 +163,7 @@ class ConvE(pl.LightningModule):
                 _, top_indices = output[i].topk(output.shape[1])
                 for idx in indices[i]:
                     _, rank = (top_indices == idx).max(dim=0)
-                    ranking = rank.data[0] + 1
+                    ranking = rank.item() + 1
                     test_score += ranking
 
                 self.log("MRR", 1.0 / ranking)
