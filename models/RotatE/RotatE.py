@@ -60,7 +60,7 @@ class RotatE(pl.LightningModule):
             regularization: float
 
         """
-        super(TransE, self).__init__()
+        super(RotatE, self).__init__()
         self.n_entity = n_entity
         self.n_relation = n_relation
         self.hidden_dim = hidden_dim
@@ -102,6 +102,8 @@ class RotatE(pl.LightningModule):
 
         if not double_entity_embedding or double_relation_embedding:
             raise ValueError("RotatE should use --double_entity_embedding")
+
+        self.save_hyperparameters()
 
     def forward(self, sample, mode="single"):
         if mode == "single":
