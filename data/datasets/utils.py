@@ -11,7 +11,7 @@ def read_triple(file_path: str, entity2id: dict, relation2id: dict) -> list:
             dictionary mapping a relation to its ID
     Returns:
         triples: list[(int, int, int)]
-            list of triples, representing each relation by their IDs (head, relation, tail)
+            list of triples, representing each entity/relation by their IDs (head, relation, tail)
     """
     triples = []
     with open(file_path) as f:
@@ -55,3 +55,39 @@ def load_relations(file_path: str) -> dict:
             r_id, relation = line.strip().split("\t")
             relation2id[relation] = int(r_id)
     return relation2id
+
+
+def separate_triples(triples):
+    """Separates the triples in two lists.
+
+    Given a list of triples (s, r, o), creates a list of tuples (s, r) and a list of o.
+
+    Args:
+        triples: List[(int, int, int)]
+            triples to separate
+    Returns:
+        x: List[(int, int)]
+            list of pairs of (source entity, relation)
+        y: List[int]
+            list of associated target entity
+    """
+    dict_source = {}
+    for triple in triples:
+        source = triple[0]
+        relation = triple[1]
+        target = triple[2]
+
+        if source not in dict_source:
+            dict_source[source] = {relation: [target]}
+        else:
+            if relation not in dict_source[source]:
+                dict_source[source][relation] = [target]
+            else:
+                dict_source[source][relation].append(target)
+
+    x = []
+    y = []
+    for i, triple in enumerate(triples):
+        x.append((triple[0], triple[1]))
+        y.append(dict_source[triple[0]][triple[1]])
+    return x, y
