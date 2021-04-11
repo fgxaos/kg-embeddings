@@ -9,3 +9,5 @@ data/datasets/FB15k-237
 data/datasets/wn18rr
 # Ignore checkpoint files
 *.ckpt
+# Ignore wandb files
+wandb
