@@ -1,6 +1,8 @@
 ### LIBRARIES ###
 # Global libraries
 import os
+import wandb
+
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 
@@ -16,9 +18,11 @@ from models.ConvE.ConvE import ConvE
 
 ### VARIABLES ###
 n_epochs = 10
+batch_size = 128
+negative_sample_size = 128
 
 ### MAIN CODE ###
-def run_experiment(dataset: str, model_name: str):
+def run_experiment(dataset: str, model_name: str, use_wandb: bool):
     """Runs a single experiment.
 
     Args:
@@ -26,18 +30,31 @@ def run_experiment(dataset: str, model_name: str):
             name of the dataset to use
         model_name: str
             name of the model to use
+        use_wandb: bool
+            whether to use wandb
     """
+    if use_wandb:
+        wandb.init(project="mlns_kg_embedding")
+        wandb.config.dataset = dataset
+        wandb.config.model_name = model_name
+        wandb.config.n_epochs = n_epochs
+        wandb.config.batch_size = batch_size
+        wandb.config.negative_sample_size = negative_sample_size
+
     # Load the dataset
     dataset_path = os.path.join("data", "datasets", dataset)
     data_module = KGDataModule(
-        dataset_path, num_workers=4, batch_size=128, negative_sample_size=128
+        dataset_path,
+        num_workers=4,
+        batch_size=batch_size,
+        negative_sample_size=negative_sample_size,
     )
 
     # Create a model instance
     n_entity = len(data_module.entity2id)
     n_relation = len(data_module.relation2id)
     if model_name == "TransE":
-        model = TransE(n_entity, n_relation, 256, 12.0, 1e-3)
+        model = TransE(n_entity, n_relation, 256, 12.0, 1e-3, use_wandb)
     elif model_name == "DistMult":
         model = DistMult(n_entity, n_relation, 256, 12.0, 1e-3)
     elif model_name == "ComplEx":
@@ -84,4 +101,4 @@ def run_experiment(dataset: str, model_name: str):
     trainer.test(model_test, datamodule=data_module)
 
 
-run_experiment("wn18rr", "TransE")
+run_experiment("FB15k-237", "TransE")

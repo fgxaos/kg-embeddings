@@ -1,5 +1,7 @@
 ### LIBRARIES ###
 # Global libraries
+import wandb
+
 import numpy as np
 
 import torch
@@ -26,6 +28,7 @@ class TransE(pl.LightningModule):
         hidden_dim: int,
         gamma: float,
         learning_rate: float,
+        use_wandb: bool,
         double_entity_embedding: bool = False,
         double_relation_embedding: bool = False,
         negative_adversarial_sampling: bool = False,
@@ -46,6 +49,8 @@ class TransE(pl.LightningModule):
 
             learning_rate: float
                 learning rate to use for the optimizer
+            use_wandb: bool
+                whether to use wandb
             double_entity_embedding: bool
                 whether to double the size of the entity embedding
             double_relation_embedding: bool
@@ -70,6 +75,7 @@ class TransE(pl.LightningModule):
         self.uni_weight = uni_weight
         self.regularization = regularization
         self.lr = None
+        self.use_wandb = use_wandb
 
         self.gamma = nn.Parameter(torch.Tensor([gamma]), requires_grad=False)
 
@@ -204,6 +210,9 @@ class TransE(pl.LightningModule):
 
             batch_loss += loss
 
+        if self.use_wandb:
+            wandb.log({"batch_loss": batch_loss / 2})
+
         return batch_loss / 2
 
     def validation_step(self, batch, batch_idx):
@@ -238,6 +247,7 @@ class TransE(pl.LightningModule):
                     self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
                     self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
             self.log("val_score", val_score)
+            wandb.log({"val_score": val_score})
 
     def test_step(self, batch, batch_idx):
         with torch.no_grad():
