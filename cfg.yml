@@ -1,0 +1,123 @@
+### GLOBAL VARIABLES ###
+n_epochs: 1
+batch_size: 128
+negative_sample_size: 128
+dataset: 'FB15k-237' # ['FB15k-237', 'wn18rr']
+model_name: 'ConvE'
+
+use_wandb: False
+
+### TRANSE MODEL ###
+TransE:
+  model:
+    hidden_dim: 256
+    gamma: 12.0
+    double_entity_embedding: False
+    double_relation_embedding: False
+    negative_adversarial_learning: False
+    adversarial_temperature: 1.0
+    uni_weight: False
+    regularization: 0.0
+  data:
+    batch_size: 128
+    negative_sample_size: 128
+    num_workers: 2
+  training:
+    n_epochs: 10
+    learning_rate: 0.001
+
+### COMPLEX MODEL ###
+ComplEx:
+  model:
+    hidden_dim: 256
+    gamma: 12.0
+    double_entity_embedding: True
+    double_relation_embedding: True
+    negative_adversarial_learning: False
+    adversarial_temperature: 1.0
+    uni_weight: False
+    regularization: 0.0
+  data:
+    batch_size: 128
+    negative_sample_size: 128
+    num_workers: 2
+  training:
+    n_epochs: 10
+    learning_rate: 0.001
+
+### CONVE MODEL ###
+ConvE:
+  model:
+    embedding_size_h: 20
+    embedding_size_w: 10
+    conv_channels: 32
+    conv_kernel_size: 3
+    embedding_dropout: 0.2
+    feature_map_dropout: 0.2
+    proj_layer_dropout: 0.3
+    regularization: 0.0
+    label_smooth: 0.1
+  data:
+    batch_size: 128
+    negative_sample_size: 128
+    num_workers: 2
+  training:
+    n_epochs: 10
+    learning_rate: 0.001
+
+### DISTMULT MODEL ###
+DistMult:
+  model:
+    hidden_dim: 256
+    gamma: 12.0
+    double_entity_embedding: False
+    double_relation_embedding: False
+    negative_adversarial_learning: False
+    adversarial_temperature: 1.0
+    uni_weight: False
+    regularization: 0.0
+  data:
+    batch_size: 128
+    negative_sample_size: 128
+    num_workers: 2
+  training:
+    n_epochs: 10
+    learning_rate: 0.001
+
+### PROTATE MODEL ###
+pRotatE:
+  model:
+    hidden_dim: 256
+    gamma: 12.0
+    double_entity_embedding: False
+    double_relation_embedding: False
+    negative_adversarial_learning: False
+    adversarial_temperature: 1.0
+    uni_weight: False
+    regularization: 0.0
+  data:
+    batch_size: 128
+    negative_sample_size: 128
+    num_workers: 2
+  training:
+    n_epochs: 10
+    learning_rate: 0.001
+
+### ROTATE MODEL ###
+RotatE:
+  model:
+    hidden_dim: 256
+    gamma: 12.0
+    double_entity_embedding: True
+    double_relation_embedding: False
+    negative_adversarial_learning: False
+    adversarial_temperature: 1.0
+    uni_weight: False
+    regularization: 0.0
+  data:
+    batch_size: 128
+    negative_sample_size: 128
+    num_workers: 2
+  training:
+    n_epochs: 10
+    learning_rate: 0.001
