@@ -102,6 +102,8 @@ class ComplEx(pl.LightningModule):
                 "ComplEx should use --double_entity_embedding and --double_relation_embedding"
             )
 
+        self.save_hyperparameters()
+
     def forward(self, sample, mode="single"):
         if mode == "single":
             batch_size, negative_sample_size = sample.size(0), 1
