@@ -3,7 +3,7 @@ n_epochs: 1
 batch_size: 128
 negative_sample_size: 128
 dataset: 'FB15k-237' # ['FB15k-237', 'wn18rr']
-model_name: 'ConvE'
+model_name: 'R-GCN'
 
 use_wandb: False
 
@@ -121,3 +121,17 @@ RotatE:
   training:
     n_epochs: 10
     learning_rate: 0.001
+
+### R-GCN MODEL ###
+rgcn:
+  model:
+    n_bases: 4
+    dropout: 0.2
+    reg_ratio: 0.01
+  data:
+    batch_size: 128
+    negative_sample_size: 1
+    num_workers: 1
+  training:
+    n_epochs: 100
+    learning_rate: 0.01

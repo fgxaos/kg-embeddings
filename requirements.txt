@@ -2,3 +2,6 @@ numpy
 torch
 pytorch-lightning
 wandb
+torch-scatter
+torch-geometric
+torch-sparse

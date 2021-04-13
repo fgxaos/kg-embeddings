@@ -12,6 +12,7 @@ from models.ComplEx.run_model import run_complex
 from models.RotatE.run_model import run_rotate
 from models.pRotatE.run_model import run_protate
 from models.ConvE.run_model import run_conve
+from models.rgcn.run_model import run_rgcn
 
 ### FUNCTION DEFINITION ###
 def run_experiment(cfg):
@@ -60,5 +61,7 @@ def run_experiment(cfg):
         run_protate(dataset_path, ckpt_file, checkpoint_callback, cfg)
     elif cfg["model_name"] == "ConvE":
         run_conve(dataset_path, ckpt_file, checkpoint_callback, cfg)
+    elif cfg["model_name"] == "R-GCN":
+        run_rgcn(dataset_path, ckpt_file, checkpoint_callback, cfg)
     else:
         raise ValueError("Wrong model name given")
