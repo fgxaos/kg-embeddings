@@ -2,15 +2,15 @@
 # Global libraries
 import os
 
+import numpy as np
+
 import torch
-from torch.utils.data import DataLoader
+from torch_geometric.data import DataLoader, Dataset
 
 from pytorch_lightning import LightningDataModule
 
 # Custom libraries
-from models.rgcn.datasets import TrainDataset, TestDataset
-
-from models.rgcn.utils import build_test_graph
+from models.rgcn.utils import build_test_graph, generate_sampled_graph_and_labels
 from data.datasets.utils import load_entities, load_relations, read_triple
 
 ### CLASS DEFINITION ###
@@ -51,24 +51,26 @@ class KGDataModule(LightningDataModule):
             os.path.join(self.dataset_dir, "relations.dict")
         )
         # Load training, validation and test triples
-        self.train_triples = read_triple(
+        train_triples = read_triple(
             os.path.join(self.dataset_dir, "train.txt"),
             self.entity2id,
             self.relation2id,
         )
-        self.val_triples = read_triple(
+        val_triples = read_triple(
             os.path.join(self.dataset_dir, "valid.txt"),
             self.entity2id,
             self.relation2id,
         )
-        self.test_triples = read_triple(
+        test_triples = read_triple(
             os.path.join(self.dataset_dir, "test.txt"), self.entity2id, self.relation2id
         )
 
         # Gather all the triples
-        self.all_triples = torch.LongTensor(
-            self.train_triples + self.val_triples + self.test_triples
-        )
+        self.all_triples = torch.LongTensor(train_triples + val_triples + test_triples)
+
+        self.train_triples = np.array(train_triples, dtype=int)
+        self.val_triples = torch.LongTensor(val_triples)
+        self.test_triples = torch.LongTensor(test_triples)
 
         # Build the test graph
         self.test_graph = build_test_graph(
@@ -76,43 +78,37 @@ class KGDataModule(LightningDataModule):
         )
 
     def train_dataloader(self):
+        # Build the train data
+        train_data = generate_sampled_graph_and_labels(
+            self.train_triples,
+            self.batch_size,
+            self.split_size,
+            len(self.entity2id),
+            len(self.relation2id),
+            self.negative_sample_size,
+        )
+
         return DataLoader(
-            TrainDataset(
-                self.train_triples,
-                len(self.entity2id),
-                len(self.relation2id),
-                self.negative_sample_size,
-            ),
+            train_data,
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
-            collate_fn=TrainDataset.collate_fn,
         )
 
     def val_dataloader(self):
-        return DataLoader(
-            TestDataset(
-                self.val_triples,
-                self.all_triples,
-                len(self.entity2id),
-                len(self.relation2id),
-            ),
-            batch_size=17535,
-            shuffle=False,
-            num_workers=self.num_workers,
-            collate_fn=TestDataset.collate_fn,
-        )
+        return DataLoader([self.test_graph], batch_size=1)
+        # return DataLoader(
+        #     self.test_graph,
+        #     batch_size=self.batch_size,
+        #     shuffle=False,
+        #     num_workers=self.num_workers,
+        # )
 
     def test_dataloader(self):
-        return DataLoader(
-            TestDataset(
-                self.test_triples,
-                self.all_triples,
-                len(self.entity2id),
-                len(self.relation2id),
-            ),
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers,
-            collate_fn=TestDataset.collate_fn,
-        )
+        return self.test_graph
+        # return DataLoader(
+        #     self.test_graph,
+        #     batch_size=self.batch_size,
+        #     shuffle=False,
+        #     num_workers=self.num_workers,
+        # )

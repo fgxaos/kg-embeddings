@@ -131,7 +131,9 @@ rgcn:
   data:
     batch_size: 128
     negative_sample_size: 1
+    split_size: 0.5
     num_workers: 1
   training:
     n_epochs: 100
     learning_rate: 0.01
+    grad_norm: 1.0

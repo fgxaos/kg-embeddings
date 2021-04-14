@@ -62,6 +62,6 @@ def run_experiment(cfg):
     elif cfg["model_name"] == "ConvE":
         run_conve(dataset_path, ckpt_file, checkpoint_callback, cfg)
     elif cfg["model_name"] == "R-GCN":
-        run_rgcn(dataset_path, ckpt_file, checkpoint_callback, cfg)
+        run_rgcn(dataset_path, ckpt_file, cfg)
     else:
         raise ValueError("Wrong model name given")

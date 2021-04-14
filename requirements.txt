@@ -5,3 +5,4 @@ wandb
 torch-scatter
 torch-geometric
 torch-sparse
+tqdm
