@@ -88,7 +88,6 @@ class TransE(pl.LightningModule):
         self.relation_dim = hidden_dim * 2 if double_relation_embedding else hidden_dim
 
         self.entity_embedding = nn.Parameter(torch.zeros(n_entity, self.entity_dim))
-        # TODO: Try to replace the uniform initialization with a Xavier
         nn.init.uniform_(
             tensor=self.entity_embedding,
             a=-self.embedding_range.item(),
@@ -98,7 +97,6 @@ class TransE(pl.LightningModule):
         self.relation_embedding = nn.Parameter(
             torch.zeros(n_relation, self.relation_dim)
         )
-        # TODO: Try to replace the uniform initialization with a Xavier
         nn.init.uniform_(
             tensor=self.relation_embedding,
             a=-self.embedding_range.item(),
