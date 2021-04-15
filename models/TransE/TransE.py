@@ -245,6 +245,8 @@ class TransE(pl.LightningModule):
                     self.log("HITS@3", 1.0 if ranking <= 3 else 0.0)
                     self.log("HITS@10", 1.0 if ranking <= 10 else 0.0)
             self.log("val_score", val_score)
+
+        if self.use_wandb:
             wandb.log({"val_score": val_score})
 
     def test_step(self, batch, batch_idx):
