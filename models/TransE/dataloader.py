@@ -19,7 +19,8 @@ class KGDataModule(LightningDataModule):
         self,
         dataset_dir: str,
         num_workers: int,
-        batch_size: int,
+        train_batch_size: int,
+        val_batch_size: int,
         negative_sample_size: int,
         *args,
         **kwargs
@@ -31,8 +32,10 @@ class KGDataModule(LightningDataModule):
                 path of the dataset directory to use
             num_workers: int
                 number of workers to use
-            batch_size: int
-                batch size to use
+            train_batch_size: int
+                batch size to use for training
+            val_batch_size: int
+                batch size to use for validation / test
             negative_sample_size: int
                 size of the negative samples
         """
@@ -40,7 +43,8 @@ class KGDataModule(LightningDataModule):
 
         self.dataset_dir = dataset_dir
         self.num_workers = num_workers
-        self.batch_size = batch_size
+        self.train_batch_size = train_batch_size
+        self.val_batch_size = val_batch_size
         self.negative_sample_size = negative_sample_size
 
         # Build dictionaries to translate entities/relations to their ID
@@ -72,7 +76,7 @@ class KGDataModule(LightningDataModule):
                 self.negative_sample_size,
                 "head-batch",
             ),
-            batch_size=self.batch_size,
+            batch_size=self.train_batch_size,
             shuffle=True,
             num_workers=self.num_workers,
             collate_fn=TrainDataset.collate_fn,
@@ -88,7 +92,7 @@ class KGDataModule(LightningDataModule):
                 self.negative_sample_size,
                 "tail-batch",
             ),
-            batch_size=self.batch_size,
+            batch_size=self.train_batch_size,
             shuffle=True,
             num_workers=self.num_workers,
             collate_fn=TrainDataset.collate_fn,
@@ -107,7 +111,7 @@ class KGDataModule(LightningDataModule):
                 len(self.relation2id),
                 "head-batch",
             ),
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             shuffle=False,
             num_workers=self.num_workers,
             collate_fn=TestDataset.collate_fn,
@@ -123,7 +127,7 @@ class KGDataModule(LightningDataModule):
                 len(self.relation2id),
                 "tail-batch",
             ),
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             shuffle=False,
             num_workers=self.num_workers,
             collate_fn=TestDataset.collate_fn,
@@ -142,7 +146,7 @@ class KGDataModule(LightningDataModule):
                 len(self.relation2id),
                 "head-batch",
             ),
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             shuffle=False,
             num_workers=self.num_workers,
             collate_fn=TestDataset.collate_fn,
@@ -158,7 +162,7 @@ class KGDataModule(LightningDataModule):
                 len(self.relation2id),
                 "tail-batch",
             ),
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             shuffle=False,
             num_workers=self.num_workers,
             collate_fn=TestDataset.collate_fn,

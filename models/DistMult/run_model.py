@@ -36,7 +36,8 @@ def run_distmult(
     data_module = KGDataModule(
         dataset_path,
         num_workers=cfg_data["num_workers"],
-        batch_size=cfg_data["batch_size"],
+        train_batch_size=cfg_data["train_batch_size"],
+        val_batch_size=cfg_data["val_batch_size"],
         negative_sample_size=cfg_data["negative_sample_size"],
     )
 

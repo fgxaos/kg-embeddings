@@ -29,14 +29,17 @@ class KGDataModule(LightningDataModule):
                 path of the dataset directory to use
             num_workers: int
                 number of workers to use
-            batch_size: int
-                batch size to use
+            train_batch_size: int
+                batch size to use for training
+            val_batch_size: int
+                batch size to use for validation and test
         """
         super().__init__(*args, **kwargs)
 
         self.dataset_dir = dataset_dir
         self.num_workers = num_workers
-        self.batch_size = batch_size
+        self.train_batch_size = train_batch_size
+        self.val_batch_size = val_batch_size
 
         # Build dictionaries to translate entities/relations to their ID
         self.entity2id = load_entities(os.path.join(self.dataset_dir, "entities.dict"))
@@ -66,7 +69,7 @@ class KGDataModule(LightningDataModule):
     def train_dataloader(self):
         return DataLoader(
             ConvEDataset(self.x_train, self.y_train),
-            batch_size=self.batch_size,
+            batch_size=self.train_batch_size,
             shuffle=True,
             num_workers=self.num_workers,
             collate_fn=ConvEDataset.collate_train,
@@ -75,7 +78,7 @@ class KGDataModule(LightningDataModule):
     def val_dataloader(self):
         return DataLoader(
             ConvEDataset(self.x_val, self.y_val),
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             shuffle=True,
             num_workers=self.num_workers,
             collate_fn=ConvEDataset.collate_test,
@@ -84,7 +87,7 @@ class KGDataModule(LightningDataModule):
     def test_dataloader(self):
         return DataLoader(
             ConvEDataset(self.x_test, self.y_test),
-            batch_size=self.batch_size,
+            batch_size=self.val_batch_size,
             shuffle=True,
             num_workers=self.num_workers,
             collate_fn=ConvEDataset.collate_test,

@@ -2,8 +2,8 @@
 n_epochs: 1
 batch_size: 128
 negative_sample_size: 128
-dataset: 'FB15k-237' # ['FB15k-237', 'wn18rr']
-model_name: 'R-GCN'
+dataset: 'YAGO3-10' # ['FB15k-237', 'wn18rr']
+model_name: 'TransE'
 
 use_wandb: False
 
@@ -19,7 +19,8 @@ TransE:
     uni_weight: False
     regularization: 0.0
   data:
-    batch_size: 128
+    train_batch_size: 4096
+    val_batch_size: 32
     negative_sample_size: 128
     num_workers: 2
   training:
@@ -38,7 +39,8 @@ ComplEx:
     uni_weight: False
     regularization: 0.0
   data:
-    batch_size: 128
+    train_batch_size: 4096
+    val_batch_size: 32
     negative_sample_size: 128
     num_workers: 2
   training:
@@ -58,7 +60,8 @@ ConvE:
     regularization: 0.0
     label_smooth: 0.1
   data:
-    batch_size: 128
+    train_batch_size: 4096
+    val_batch_size: 32
     negative_sample_size: 128
     num_workers: 2
   training:
@@ -77,7 +80,8 @@ DistMult:
     uni_weight: False
     regularization: 0.0
   data:
-    batch_size: 128
+    train_batch_size: 4096
+    val_batch_size: 32
     negative_sample_size: 128
     num_workers: 2
   training:
@@ -96,7 +100,8 @@ pRotatE:
     uni_weight: False
     regularization: 0.0
   data:
-    batch_size: 128
+    train_batch_size: 4096
+    val_batch_size: 32
     negative_sample_size: 128
     num_workers: 2
   training:
@@ -115,7 +120,8 @@ RotatE:
     uni_weight: False
     regularization: 0.0
   data:
-    batch_size: 128
+    train_batch_size: 4096
+    val_batch_size: 32
     negative_sample_size: 128
     num_workers: 2
   training:
@@ -137,3 +143,20 @@ rgcn:
     n_epochs: 100
     learning_rate: 0.01
     grad_norm: 1.0
+
+### GRAPHSAGE MODEL ###
+graphsage:
+  model:
+    input_dim: 
+    hidden_dims:
+      - 64
+    output_dim:
+    dropout: 0.1
+    agg_class: 'MaxPoolAggregator'
+  data:
+    batch_size: 32
+    num_samples: -1
+  training:
+    n_epochs: 10
+    learning_rate: 0.0005
+    weight_decay: 0.0005
