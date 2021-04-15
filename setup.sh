@@ -29,6 +29,14 @@ download_file "train.txt" "https://raw.githubusercontent.com/DeepGraphLearning/K
 download_file "valid.txt" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/wn18rr/valid.txt" "data/datasets/wn18rr"
 download_file "README.md" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/wn18rr/README.txt" "data/datasets/wn18rr"
 
+# Download the YAGO3-10 dataset
+echo "Checking the YAGO3-10 dataset..."
+download_file "entities.dict" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/YAGO3-10/entities.dict" "data/datasets/YAGO3-10"
+download_file "relations.dict" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/YAGO3-10/relations.dict" "data/datasets/YAGO3-10"
+download_file "test.txt" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/YAGO3-10/test.txt" "data/datasets/YAGO3-10"
+download_file "train.txt" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/YAGO3-10/train.txt" "data/datasets/YAGO3-10"
+download_file "valid.txt" "https://raw.githubusercontent.com/DeepGraphLearning/KnowledgeGraphEmbedding/master/data/YAGO3-10/valid.txt" "data/datasets/YAGO3-10"
+
 # Create virtual environment
 if [-e "venv" ]; then
     echo "The virtual environment already exists"
