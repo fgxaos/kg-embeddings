@@ -7,6 +7,7 @@ lightning_logs
 # Ignore dataset files
 data/datasets/FB15k-237
 data/datasets/wn18rr
+data/datasets/YAGO3-10
 # Ignore checkpoint files
 *.ckpt
 # Ignore wandb files
