@@ -57,7 +57,7 @@ class ComplEx(pl.LightningModule):
             regularization: float
 
         """
-        super(TransE, self).__init__()
+        super(ComplEx, self).__init__()
         self.n_entity = n_entity
         self.n_relation = n_relation
         self.hidden_dim = hidden_dim
