@@ -20,7 +20,13 @@ class KGDataModule(LightningDataModule):
     """Knowledge Graph module for ConvE"""
 
     def __init__(
-        self, dataset_dir: str, num_workers: int, batch_size: int, *args, **kwargs
+        self,
+        dataset_dir: str,
+        num_workers: int,
+        train_batch_size: int,
+        val_batch_size: int,
+        *args,
+        **kwargs
     ):
         """Initiates a Knowledge Graph dataset.
 
