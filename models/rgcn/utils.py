@@ -149,6 +149,7 @@ def compute_metrics(embedding, w, test_triplets, all_triplets, hits):
         ranks = torch.cat([ranks_s, ranks_o])
         ranks += 1
 
+        metrics = {}
         metrics["mrr"] = torch.mean(1.0 / ranks.float())
         for hit in hits:
             metrics[f"hits@{hit}"] = torch.mean((ranks <= hit).float())
